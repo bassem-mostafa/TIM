@@ -2477,6 +2477,12 @@ extern "C"
         TIM_Weekday_Friday,       ///< Friday
     } TIM_Weekday_t;
 
+    // FIXME Resolve the time-stamp update side effects
+    //       Possible solutions:
+    //       - Solution 1: system-wide notification of the update event to re-sync.
+    //       - Solution 2: having a low level timing that always being in sync.
+    //       - Solution 3: centralize time based actions.
+    //       - ...
     /**
      *  @brief TIM Timestamp Type
      *
