@@ -85,7 +85,7 @@ extern "C"
     // #### Public Type(s) #########################################################
     // #############################################################################
 
-    typedef struct TIM_Instance_Context TIM_Instance_Context_t;
+    typedef struct TIM_InstanceContext TIM_InstanceContext_t;
 
     typedef struct TIM_Instance
     {
@@ -93,7 +93,7 @@ extern "C"
 
         union
         {
-            TIM_Instance_Context_t * Context;
+            TIM_InstanceContext_t * Context;
         };
     } TIM_Instance_t;
 
