@@ -48,29 +48,31 @@ extern "C"
     // #### Include(s) #############################################################
     // #############################################################################
 
-    #include "TIM_Port.h"
+    #include "TIM.h"
 
     // #############################################################################
     // #### Public Macro(s) ########################################################
     // #############################################################################
 
-    #define TIM_TIM TIM_1
+    #ifndef TIM_TIM
+        #define TIM_TIM PLATFORM_DEFAULT_TIM
+    #endif
 
     #ifndef TIM_LOG
-        #define TIM_LOG LOG_1
+        #define TIM_LOG PLATFORM_DEFAULT_LOG
     #endif
 
     #define TIM_NAME       "TIM"
     #define TIM_LOG_PREFIX UTIL_StringConcatenateConstant( TIM_NAME, "> " )
 
     #ifdef DEBUG
-        #define TIM_Raw( Level, Format, ... ) TIM_LOG_Raw( Level, Format, ##__VA_ARGS__ )
-        #define TIM_Trace( Format, ... )      TIM_LOG_Trace( UTIL_StringConcatenateConstant( TIM_LOG_PREFIX, Format ), ##__VA_ARGS__ )
-        #define TIM_Debug( Format, ... )      TIM_LOG_Debug( UTIL_StringConcatenateConstant( TIM_LOG_PREFIX, Format ), ##__VA_ARGS__ )
-        #define TIM_Info( Format, ... )       TIM_LOG_Info( UTIL_StringConcatenateConstant( TIM_LOG_PREFIX, Format ), ##__VA_ARGS__ )
-        #define TIM_Warning( Format, ... )    TIM_LOG_Warning( UTIL_StringConcatenateConstant( TIM_LOG_PREFIX, Format ), ##__VA_ARGS__ )
-        #define TIM_Error( Format, ... )      TIM_LOG_Error( UTIL_StringConcatenateConstant( TIM_LOG_PREFIX, Format ), ##__VA_ARGS__ )
-        #define TIM_Fatal( Format, ... )      TIM_LOG_Fatal( UTIL_StringConcatenateConstant( TIM_LOG_PREFIX, Format ), ##__VA_ARGS__ )
+        #define TIM_Raw( Level, Format, ... ) LOG_Raw( TIM_LOG, Level, Format, ##__VA_ARGS__ )
+        #define TIM_Trace( Format, ... )      LOG_Trace( TIM_LOG, UTIL_StringConcatenateConstant( TIM_LOG_PREFIX, Format ), ##__VA_ARGS__ )
+        #define TIM_Debug( Format, ... )      LOG_Debug( TIM_LOG, UTIL_StringConcatenateConstant( TIM_LOG_PREFIX, Format ), ##__VA_ARGS__ )
+        #define TIM_Info( Format, ... )       LOG_Info( TIM_LOG, UTIL_StringConcatenateConstant( TIM_LOG_PREFIX, Format ), ##__VA_ARGS__ )
+        #define TIM_Warning( Format, ... )    LOG_Warning( TIM_LOG, UTIL_StringConcatenateConstant( TIM_LOG_PREFIX, Format ), ##__VA_ARGS__ )
+        #define TIM_Error( Format, ... )      LOG_Error( TIM_LOG, UTIL_StringConcatenateConstant( TIM_LOG_PREFIX, Format ), ##__VA_ARGS__ )
+        #define TIM_Fatal( Format, ... )      LOG_Fatal( TIM_LOG, UTIL_StringConcatenateConstant( TIM_LOG_PREFIX, Format ), ##__VA_ARGS__ )
     #else
         #define TIM_Raw( Level, Format, ... )
         #define TIM_Trace( Format, ... )
@@ -85,56 +87,61 @@ extern "C"
     // #### Public Type(s) #########################################################
     // #############################################################################
 
-    typedef struct TIM_InstanceContext TIM_InstanceContext_t;
+    typedef enum TIM_Type
+    {
+        TIM_Type_Unknown = 0,
+        TIM_Type_Null,
+        TIM_Type_RTC,
+    } TIM_Type_t;
 
     typedef struct TIM_Instance
     {
-        TIM_t TIMx;
+        TIM_Type_t Type;
 
         union
         {
-            TIM_InstanceContext_t * Context;
+            RTC_t RTCx;
         };
+
+        TIM_Timestamp_t Timestamp;
     } TIM_Instance_t;
 
     // #############################################################################
     // #### Public Method(s) #######################################################
     // #############################################################################
 
-    TIM_Status_t TIM_Year_IsValid( TIM_Year_t TIM_Year );
-    TIM_Status_t TIM_Year_IsLeap( TIM_Year_t TIM_Year );
+    TIM_Status_t TIM_Year_IsValid( TIM_Year_t Year );
+    TIM_Status_t TIM_Year_IsLeap( TIM_Year_t Year );
 
-    TIM_Status_t TIM_Month_IsValid( TIM_Month_t TIM_Month );
+    TIM_Status_t TIM_Month_IsValid( TIM_Month_t Month );
 
-    TIM_Status_t TIM_Day_IsValid( TIM_Day_t TIM_Day );
+    TIM_Status_t TIM_Day_IsValid( TIM_Day_t Day );
 
-    TIM_Status_t TIM_Hour_IsValid( TIM_Hour_t TIM_Hour );
+    TIM_Status_t TIM_Hour_IsValid( TIM_Hour_t Hour );
 
-    TIM_Status_t TIM_Minute_IsValid( TIM_Minute_t TIM_Minute );
+    TIM_Status_t TIM_Minute_IsValid( TIM_Minute_t Minute );
 
-    TIM_Status_t TIM_Second_IsValid( TIM_Second_t TIM_Second );
+    TIM_Status_t TIM_Second_IsValid( TIM_Second_t Second );
 
-    TIM_Status_t TIM_Millisecond_IsValid( TIM_Millisecond_t TIM_Millisecond );
+    TIM_Status_t TIM_Millisecond_IsValid( TIM_Millisecond_t Millisecond );
 
-    TIM_Status_t TIM_Microsecond_IsValid( TIM_Microsecond_t TIM_Microsecond );
+    TIM_Status_t TIM_Microsecond_IsValid( TIM_Microsecond_t Microsecond );
 
-    TIM_Status_t TIM_Weekday_IsValid( TIM_Weekday_t TIM_Weekday );
+    TIM_Status_t TIM_Weekday_IsValid( TIM_Weekday_t Weekday );
 
-    TIM_Status_t TIM_Timestamp_IsValid( TIM_Timestamp_t * TIM_Timestamp );
+    TIM_Status_t TIM_Timestamp_IsValid( TIM_Timestamp_t * Timestamp );
 
-    TIM_Status_t TIM_Timestamp_GetMonthLastDay( TIM_Timestamp_t * TIM_Timestamp, TIM_Day_t * TIM_Day );
-    TIM_Status_t TIM_Timestamp_GetMonthLastDayDelta( TIM_Timestamp_t * TIM_Timestamp, TIM_DayDelta_t * TIM_DayDelta );
+    TIM_Status_t TIM_Timestamp_GetMonthLastDay( TIM_Timestamp_t * Timestamp, TIM_Day_t * Day );
+    TIM_Status_t TIM_Timestamp_GetMonthLastDayDelta( TIM_Timestamp_t * Timestamp, TIM_DayDelta_t * DayDelta );
 
     // The following APIs MUST be provided by the port
-    TIM_Status_t TIM_IsValid( TIM_t TIM );
+    TIM_Status_t TIM_Port_Initialize( TIM_t TIMx );
+    TIM_Status_t TIM_Port_Cycle( TIM_t TIMx );
+    TIM_Status_t TIM_Port_DeInitialize( TIM_t TIMx );
 
-    TIM_Status_t TIM_Instance_Initialize( TIM_Instance_t * TIM_Instance );
-    TIM_Status_t TIM_Instance_Cycle( TIM_Instance_t * TIM_Instance );
-    TIM_Status_t TIM_Instance_DeInitialize( TIM_Instance_t * TIM_Instance );
-
-    TIM_Status_t TIM_Instance_SetTimestamp( TIM_Instance_t * TIM_Instance, TIM_Timestamp_t TIM_Timestamp );
-    TIM_Status_t TIM_Instance_GetTimestamp( TIM_Instance_t * TIM_Instance, TIM_Timestamp_t * TIM_Timestamp );
-    TIM_Status_t TIM_Instance_IsExpiredTimestamp( TIM_Instance_t * TIM_Instance, TIM_Timestamp_t * TIM_Timestamp );
+    TIM_Status_t TIM_Port_SetTimestamp( TIM_t TIMx, TIM_Timestamp_t Timestamp );
+    TIM_Status_t TIM_Port_GetTimestamp( TIM_t TIMx, TIM_Timestamp_t * Timestamp );
+    TIM_Status_t TIM_Port_IsExpiredTimestamp( TIM_t TIMx, TIM_Timestamp_t * Timestamp );
 
     // #############################################################################
     // #### Public Variable(s) #####################################################

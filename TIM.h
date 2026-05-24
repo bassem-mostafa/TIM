@@ -94,7 +94,7 @@ extern "C"
     } TIM_Status_t;
 
     /**
-     *  @brief TIM Year Type
+     *  @brief TIM Year
      *
      *  @enum TIM_Year_t
      */
@@ -204,7 +204,7 @@ extern "C"
     } TIM_Year_t;
 
     /**
-     *  @brief TIM Month Type
+     *  @brief TIM Month
      *
      *  @enum TIM_Month_t
      */
@@ -226,7 +226,7 @@ extern "C"
     } TIM_Month_t;
 
     /**
-     *  @brief TIM Day Type
+     *  @brief TIM Day
      *
      *  @enum TIM_Day_t
      */
@@ -267,7 +267,7 @@ extern "C"
     } TIM_Day_t;
 
     /**
-     *  @brief TIM Hour Type
+     *  @brief TIM Hour
      *
      *  @enum TIM_Hour_t
      */
@@ -301,7 +301,7 @@ extern "C"
     } TIM_Hour_t;
 
     /**
-     *  @brief TIM Minute Type
+     *  @brief TIM Minute
      *
      *  @enum TIM_Minute_t
      */
@@ -371,7 +371,7 @@ extern "C"
     } TIM_Minute_t;
 
     /**
-     *  @brief TIM Second Type
+     *  @brief TIM Second
      *
      *  @enum TIM_Second_t
      */
@@ -441,7 +441,7 @@ extern "C"
     } TIM_Second_t;
 
     /**
-     *  @brief TIM Millisecond Type
+     *  @brief TIM Millisecond
      *
      *  @enum TIM_Millisecond_t
      */
@@ -1451,7 +1451,7 @@ extern "C"
     } TIM_Millisecond_t;
 
     /**
-     *  @brief TIM Microsecond Type
+     *  @brief TIM Microsecond
      *
      *  @enum TIM_Microsecond_t
      */
@@ -2461,7 +2461,7 @@ extern "C"
     } TIM_Microsecond_t;
 
     /**
-     *  @brief TIM Weekday Type
+     *  @brief TIM Weekday
      *
      *  @enum TIM_Weekday_t
      */
@@ -2484,7 +2484,7 @@ extern "C"
     //       - Solution 3: centralize time based actions.
     //       - ...
     /**
-     *  @brief TIM Timestamp Type
+     *  @brief TIM Timestamp
      *
      *  @struct TIM_Timestamp_t
      */
@@ -2501,50 +2501,48 @@ extern "C"
         TIM_Weekday_t Weekday;         ///< Weekday
     } TIM_Timestamp_t;
 
-    // TODO Combine the following into TIM_Delta_t
-
     /**
-     *  @brief TIM Year Delta Type
+     *  @brief TIM Year Delta
      */
     typedef int32_t TIM_YearDelta_t;
 
     /**
-     *  @brief TIM Month Delta Type
+     *  @brief TIM Month Delta
      */
     typedef int32_t TIM_MonthDelta_t;
 
     /**
-     *  @brief TIM Day Delta Type
+     *  @brief TIM Day Delta
      */
     typedef int32_t TIM_DayDelta_t;
 
     /**
-     *  @brief TIM Hour Delta Type
+     *  @brief TIM Hour Delta
      */
     typedef int32_t TIM_HourDelta_t;
 
     /**
-     *  @brief TIM Minute Delta Type
+     *  @brief TIM Minute Delta
      */
     typedef int32_t TIM_MinuteDelta_t;
 
     /**
-     *  @brief TIM Second Delta Type
+     *  @brief TIM Second Delta
      */
     typedef int32_t TIM_SecondDelta_t;
 
     /**
-     *  @brief TIM Millisecond Delta Type
+     *  @brief TIM Millisecond Delta
      */
     typedef int32_t TIM_MillisecondDelta_t;
 
     /**
-     *  @brief TIM Microsecond Delta Type
+     *  @brief TIM Microsecond Delta
      */
     typedef int32_t TIM_MicrosecondDelta_t;
 
     /**
-     *  @brief TIM Delta Type
+     *  @brief TIM Delta
      *
      *  @struct TIM_Delta_t
      */
@@ -2559,6 +2557,27 @@ extern "C"
         TIM_MillisecondDelta_t Millisecond; ///< Millisecond
         TIM_MicrosecondDelta_t Microsecond; ///< Microsecond
     } TIM_Delta_t;
+
+    /**
+     *  @brief TIM Callback Context
+     */
+    typedef void TIM_CallbackContext_t;
+
+    /**
+     *  @brief TIM Callback
+     */
+    typedef TIM_Status_t( TIM_Callback_t )( TIM_t TIMx, TIM_CallbackContext_t * Context );
+
+    /**
+     *  @brief TIM On Expire Configuration
+     *
+     *  @struct TIM_OnExpire_t
+     */
+    typedef struct TIM_OnExpire
+    {
+        TIM_Callback_t * Callback;
+        TIM_CallbackContext_t * Context;
+    } TIM_OnExpire_t;
 
     // #############################################################################
     // #### Public Method(s) #######################################################
@@ -2624,90 +2643,101 @@ extern "C"
     TIM_Status_t TIM_IsExpiredTimestamp( TIM_t TIMx, TIM_Timestamp_t * Timestamp );
 
     /**
-     *  @brief Add delta-years to time-stamp
+     *  @brief Register on-expire configuration
      *
-     *  @param[in] Timestamp Time-stamp pointer
-     *  @param[in] YearDelta Delta years
+     *  @param[in] TIMx      Source
+     *  @param[in] Timestamp Time-stamp
+     *  @param[in] OnExpire  On-Expire Configuration
      *
      *  @return TIM_Status_t
      */
-    TIM_Status_t TIM_Timestamp_AddYear( TIM_Timestamp_t * Timestamp, TIM_YearDelta_t YearDelta );
+    TIM_Status_t TIM_RegisterCallbackOnExpire( TIM_t TIMx, TIM_Timestamp_t Timestamp, TIM_OnExpire_t OnExpire );
+
+    /**
+     *  @brief Add delta-years to time-stamp
+     *
+     *  @param[in] Timestamp Time-stamp pointer
+     *  @param[in] Delta     Years delta
+     *
+     *  @return TIM_Status_t
+     */
+    TIM_Status_t TIM_Timestamp_AddYear( TIM_Timestamp_t * Timestamp, TIM_YearDelta_t Delta );
 
     /**
      *  @brief Add delta-months to time-stamp
      *
      *  @param[in] Timestamp  Time-stamp pointer
-     *  @param[in] MonthDelta Delta months
+     *  @param[in] Delta      Months delta
      *
      *  @return TIM_Status_t
      */
-    TIM_Status_t TIM_Timestamp_AddMonth( TIM_Timestamp_t * Timestamp, TIM_MonthDelta_t MonthDelta );
+    TIM_Status_t TIM_Timestamp_AddMonth( TIM_Timestamp_t * Timestamp, TIM_MonthDelta_t Delta );
 
     /**
      *  @brief Add delta-days to time-stamp
      *
      *  @param[in] Timestamp Time-stamp pointer
-     *  @param[in] DayDelta  Delta days
+     *  @param[in] Delta     Days delta
      *
      *  @return TIM_Status_t
      */
-    TIM_Status_t TIM_Timestamp_AddDay( TIM_Timestamp_t * Timestamp, TIM_DayDelta_t DayDelta );
+    TIM_Status_t TIM_Timestamp_AddDay( TIM_Timestamp_t * Timestamp, TIM_DayDelta_t Delta );
 
     /**
      *  @brief Add delta-hours to time-stamp
      *
      *  @param[in] Timestamp Time-stamp pointer
-     *  @param[in] HourDelta Delta hours
+     *  @param[in] Delta     Hours delta
      *
      *  @return TIM_Status_t
      */
-    TIM_Status_t TIM_Timestamp_AddHour( TIM_Timestamp_t * Timestamp, TIM_HourDelta_t HourDelta );
+    TIM_Status_t TIM_Timestamp_AddHour( TIM_Timestamp_t * Timestamp, TIM_HourDelta_t Delta );
 
     /**
      *  @brief Add delta-minutes to time-stamp
      *
-     *  @param[in] Timestamp   Time-stamp pointer
-     *  @param[in] MinuteDelta Delta minutes
+     *  @param[in] Timestamp Time-stamp pointer
+     *  @param[in] Delta     Minutes delta
      *
      *  @return TIM_Status_t
      */
-    TIM_Status_t TIM_Timestamp_AddMinute( TIM_Timestamp_t * Timestamp, TIM_MinuteDelta_t MinuteDelta );
+    TIM_Status_t TIM_Timestamp_AddMinute( TIM_Timestamp_t * Timestamp, TIM_MinuteDelta_t Delta );
 
     /**
      *  @brief Add delta-seconds to time-stamp
      *
-     *  @param[in] Timestamp   Time-stamp pointer
-     *  @param[in] SecondDelta Delta seconds
+     *  @param[in] Timestamp Time-stamp pointer
+     *  @param[in] Delta     Seconds delta
      *
      *  @return TIM_Status_t
      */
-    TIM_Status_t TIM_Timestamp_AddSecond( TIM_Timestamp_t * Timestamp, TIM_SecondDelta_t SecondDelta );
+    TIM_Status_t TIM_Timestamp_AddSecond( TIM_Timestamp_t * Timestamp, TIM_SecondDelta_t Delta );
 
     /**
      *  @brief Add delta-milliseconds to time-stamp
      *
-     *  @param[in] Timestamp        Time-stamp pointer
-     *  @param[in] MillisecondDelta Delta milliseconds
+     *  @param[in] Timestamp Time-stamp pointer
+     *  @param[in] Delta     Milliseconds delta
      *
      *  @return TIM_Status_t
      */
-    TIM_Status_t TIM_Timestamp_AddMillisecond( TIM_Timestamp_t * Timestamp, TIM_MillisecondDelta_t MillisecondDelta );
+    TIM_Status_t TIM_Timestamp_AddMillisecond( TIM_Timestamp_t * Timestamp, TIM_MillisecondDelta_t Delta );
 
     /**
      *  @brief Add delta-microseconds to time-stamp
      *
-     *  @param[in] Timestamp        Time-stamp pointer
-     *  @param[in] MicrosecondDelta Delta microseconds
+     *  @param[in] Timestamp Time-stamp pointer
+     *  @param[in] Delta     Microseconds delta
      *
      *  @return TIM_Status_t
      */
-    TIM_Status_t TIM_Timestamp_AddMicrosecond( TIM_Timestamp_t * Timestamp, TIM_MicrosecondDelta_t MicrosecondDelta );
+    TIM_Status_t TIM_Timestamp_AddMicrosecond( TIM_Timestamp_t * Timestamp, TIM_MicrosecondDelta_t Delta );
 
     /**
      *  @brief Add delta-timestamp to time-stamp
      *
      *  @param[in,out] Timestamp Time-stamp pointer
-     *  @param[in]     Delta     Delta time-stamp
+     *  @param[in]     Delta     Time-stamp delta
      *
      *  @return TIM_Status_t
      */
