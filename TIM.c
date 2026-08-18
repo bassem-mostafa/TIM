@@ -59,72 +59,17 @@
 // #### Private Type(s) ########################################################
 // #############################################################################
 
-typedef struct TIM_Context
-{
-} TIM_Context_t;
-
 // #############################################################################
 // #### Private Method(s) Prototype ############################################
 // #############################################################################
-
-static TIM_Status_t TIM_Context_Initialize( void );
-static TIM_Status_t TIM_Context_Cycle( void );
-static TIM_Status_t TIM_Context_DeInitialize( void );
 
 // #############################################################################
 // #### Private Variable(s) ####################################################
 // #############################################################################
 
-static TIM_Context_t TIM_Context;
-
 // #############################################################################
 // #### Private Method(s) ######################################################
 // #############################################################################
-
-static TIM_Status_t TIM_Context_Initialize( void )
-{
-    TIM_Status_t Status = TIM_Status_Success;
-
-    do
-    {
-        TIM_Trace( "%s( void )", __FUNCTION__ );
-
-        UTIL_UNUSED( TIM_Context );
-    }
-    while ( 0 );
-
-    return Status;
-}
-
-static TIM_Status_t TIM_Context_Cycle( void )
-{
-    TIM_Status_t Status = TIM_Status_Success;
-
-    do
-    {
-        TIM_Trace( "%s( void )", __FUNCTION__ );
-
-        UTIL_UNUSED( TIM_Context );
-    }
-    while ( 0 );
-
-    return Status;
-}
-
-static TIM_Status_t TIM_Context_DeInitialize( void )
-{
-    TIM_Status_t Status = TIM_Status_Success;
-
-    do
-    {
-        TIM_Trace( "%s( void )", __FUNCTION__ );
-
-        UTIL_UNUSED( TIM_Context );
-    }
-    while ( 0 );
-
-    return Status;
-}
 
 // #############################################################################
 // #### Public Method(s) #######################################################
@@ -138,11 +83,6 @@ TIM_Status_t TIM_Initialize( TIM_t TIMx )
     do
     {
         TIM_Trace( "%s( TIMx=%d )", __FUNCTION__, TIMx );
-
-        if ( ( Status = TIM_Context_Initialize( ) ) != TIM_Status_Success )
-        {
-            break;
-        }
 
         for ( TIM_t TIM_x = TIM_Null; TIM_x < TIM_Count; ++TIM_x )
         {
@@ -170,11 +110,6 @@ TIM_Status_t TIM_Cycle( TIM_t TIMx )
     do
     {
         TIM_Trace( "%s( TIMx=%d )", __FUNCTION__, TIMx );
-
-        if ( ( Status = TIM_Context_Cycle( ) ) != TIM_Status_Success )
-        {
-            break;
-        }
 
         for ( TIM_t TIM_x = TIM_Null; TIM_x < TIM_Count; ++TIM_x )
         {
@@ -214,11 +149,6 @@ TIM_Status_t TIM_DeInitialize( TIM_t TIMx )
             {
                 Status = TIM_Status;
             }
-        }
-
-        if ( ( Status = TIM_Context_DeInitialize( ) ) != TIM_Status_Success )
-        {
-            break;
         }
     }
     while ( 0 );
@@ -672,7 +602,7 @@ TIM_Status_t TIM_Timestamp_AddDelta( TIM_Timestamp_t * Timestamp, TIM_Delta_t De
 // #### Public Variable(s) #####################################################
 // #############################################################################
 
-const char TIM_VERSION[] = "0.0.0.v20260524-1454";
+const char TIM_VERSION[] = "0.0.0.v20260818-0345";
 
 // #############################################################################
 // #### File Guard #############################################################
