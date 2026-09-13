@@ -2477,6 +2477,27 @@ extern "C"
         TIM_Weekday_Friday,       ///< Friday
     } TIM_Weekday_t;
 
+    /**
+     *  @brief TIM Callback Context
+     */
+    typedef void TIM_CallbackContext_t;
+
+    /**
+     *  @brief TIM Callback
+     */
+    typedef TIM_Status_t( TIM_Callback_t )( TIM_t TIMx, TIM_CallbackContext_t * Context );
+
+    /**
+     *  @brief TIM On Expire Configuration
+     *
+     *  @struct TIM_OnExpire_t
+     */
+    typedef struct TIM_OnExpire
+    {
+        TIM_Callback_t * Callback;
+        TIM_CallbackContext_t * Context;
+    } TIM_OnExpire_t;
+
     // FIXME Resolve the time-stamp update side effects
     //       Possible solutions:
     //       - Solution 1: system-wide notification of the update event to re-sync.
@@ -2499,6 +2520,10 @@ extern "C"
         TIM_Millisecond_t Millisecond; ///< Millisecond
         TIM_Microsecond_t Microsecond; ///< Microsecond
         TIM_Weekday_t Weekday;         ///< Weekday
+
+        // Managed Internally
+        LIST_Node_t Node;
+        TIM_OnExpire_t OnExpire;
     } TIM_Timestamp_t;
 
     /**
@@ -2557,27 +2582,6 @@ extern "C"
         TIM_MillisecondDelta_t Millisecond; ///< Millisecond
         TIM_MicrosecondDelta_t Microsecond; ///< Microsecond
     } TIM_Delta_t;
-
-    /**
-     *  @brief TIM Callback Context
-     */
-    typedef void TIM_CallbackContext_t;
-
-    /**
-     *  @brief TIM Callback
-     */
-    typedef TIM_Status_t( TIM_Callback_t )( TIM_t TIMx, TIM_CallbackContext_t * Context );
-
-    /**
-     *  @brief TIM On Expire Configuration
-     *
-     *  @struct TIM_OnExpire_t
-     */
-    typedef struct TIM_OnExpire
-    {
-        TIM_Callback_t * Callback;
-        TIM_CallbackContext_t * Context;
-    } TIM_OnExpire_t;
 
     // #############################################################################
     // #### Public Method(s) #######################################################
@@ -2643,7 +2647,7 @@ extern "C"
     TIM_Status_t TIM_IsExpiredTimestamp( TIM_t TIMx, TIM_Timestamp_t * Timestamp );
 
     /**
-     *  @brief Register on-expire configuration
+     *  @brief Set on-expire
      *
      *  @param[in] TIMx      Source
      *  @param[in] Timestamp Time-stamp
@@ -2651,7 +2655,17 @@ extern "C"
      *
      *  @return TIM_Status_t
      */
-    TIM_Status_t TIM_RegisterCallbackOnExpire( TIM_t TIMx, TIM_Timestamp_t Timestamp, TIM_OnExpire_t OnExpire );
+    TIM_Status_t TIM_SetOnExpire( TIM_t TIMx, TIM_Timestamp_t * Timestamp, TIM_OnExpire_t OnExpire );
+
+    /**
+     *  @brief Check if first time-stamp is after second timestamp
+     *
+     *  @param[in] Timestamp_1 Time-stamp 1 pointer
+     *  @param[in] Timestamp_2 Time-stamp 2 pointer
+     *
+     *  @return TIM_Status_t
+     */
+    TIM_Status_t TIM_Timestamp_IsAfter( TIM_Timestamp_t * Timestamp_1, TIM_Timestamp_t * Timestamp_2 );
 
     /**
      *  @brief Add delta-years to time-stamp
@@ -2743,7 +2757,17 @@ extern "C"
      */
     TIM_Status_t TIM_Timestamp_AddDelta( TIM_Timestamp_t * Timestamp, TIM_Delta_t Delta );
 
-    // TODO What about getting delta between TWO time-stamps ?
+    // FIXME Getting normalized delta either positive or negative not mixed as for now
+    /**
+     *  @brief Get delta of Timestamp_1 - Timestamp_2
+     *
+     *  @param[in]  Timestamp_1 Time-stamp 1 pointer
+     *  @param[in]  Timestamp_2 Time-stamp 2 pointer
+     *  @param[out] Delta       Time-stamp delta
+     *
+     *  @return TIM_Status_t
+     */
+    TIM_Status_t TIM_Timestamp_GetDelta( TIM_Timestamp_t * Timestamp_1, TIM_Timestamp_t * Timestamp_2, TIM_Delta_t * Delta );
 
     // #############################################################################
     // #### Public Variable(s) #####################################################

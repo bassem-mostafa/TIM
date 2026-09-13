@@ -415,6 +415,541 @@ TIM_Status_t TIM_Timestamp_GetMonthLastDayDelta( TIM_Timestamp_t * Timestamp, TI
     return Status;
 }
 
+TIM_Status_t TIM_Timestamp_IsAfter( TIM_Timestamp_t * Timestamp_1, TIM_Timestamp_t * Timestamp_2 )
+{
+    TIM_Status_t Status = TIM_Status_Success;
+
+    do
+    {
+        TIM_Trace( "%s( Timestamp_1=%p, Timestamp_2=%p", __FUNCTION__, Timestamp_1, Timestamp_2 );
+
+        if ( Timestamp_1->Year < Timestamp_2->Year )
+        {
+            Status = TIM_Status_Error;
+            break;
+        }
+
+        if ( Timestamp_1->Year > Timestamp_2->Year )
+        {
+            break;
+        }
+
+        if ( Timestamp_1->Month < Timestamp_2->Month )
+        {
+            Status = TIM_Status_Error;
+            break;
+        }
+
+        if ( Timestamp_1->Month > Timestamp_2->Month )
+        {
+            break;
+        }
+
+        if ( Timestamp_1->Day < Timestamp_2->Day )
+        {
+            Status = TIM_Status_Error;
+            break;
+        }
+
+        if ( Timestamp_1->Day > Timestamp_2->Day )
+        {
+            break;
+        }
+
+        if ( Timestamp_1->Hour < Timestamp_2->Hour )
+        {
+            Status = TIM_Status_Error;
+            break;
+        }
+
+        if ( Timestamp_1->Hour > Timestamp_2->Hour )
+        {
+            break;
+        }
+
+        if ( Timestamp_1->Minute < Timestamp_2->Minute )
+        {
+            Status = TIM_Status_Error;
+            break;
+        }
+
+        if ( Timestamp_1->Minute > Timestamp_2->Minute )
+        {
+            break;
+        }
+
+        if ( Timestamp_1->Second < Timestamp_2->Second )
+        {
+            Status = TIM_Status_Error;
+            break;
+        }
+
+        if ( Timestamp_1->Second > Timestamp_2->Second )
+        {
+            break;
+        }
+
+        if ( Timestamp_1->Millisecond < Timestamp_2->Millisecond )
+        {
+            Status = TIM_Status_Error;
+            break;
+        }
+
+        if ( Timestamp_1->Millisecond > Timestamp_2->Millisecond )
+        {
+            break;
+        }
+
+        if ( Timestamp_1->Microsecond < Timestamp_2->Microsecond )
+        {
+            Status = TIM_Status_Error;
+            break;
+        }
+
+        if ( Timestamp_1->Microsecond > Timestamp_2->Microsecond )
+        {
+            break;
+        }
+
+        // Timestamps are equal
+    }
+    while ( 0 );
+
+    return Status;
+}
+
+TIM_Status_t TIM_Timestamp_AddYear( TIM_Timestamp_t * Timestamp, TIM_YearDelta_t Delta )
+{
+    TIM_Status_t Status = TIM_Status_Success;
+
+    do
+    {
+        TIM_Trace( "%s( Timestamp=%p, Delta=%d )", __FUNCTION__, Timestamp, Delta );
+
+        if ( Timestamp->Year != TIM_Year_Unknown )
+        {
+            if ( Delta > TIM_Year_2099 - Timestamp->Year )
+            {
+                // MAX exceeded
+                Timestamp->Year = TIM_Year_Unknown;
+            }
+            else
+            {
+                Timestamp->Year += Delta;
+            }
+        }
+    }
+    while ( 0 );
+
+    return Status;
+}
+
+TIM_Status_t TIM_Timestamp_AddMonth( TIM_Timestamp_t * Timestamp, TIM_MonthDelta_t Delta )
+{
+    TIM_Status_t Status = TIM_Status_Success;
+
+    do
+    {
+        TIM_Trace( "%s( Timestamp=%p, Delta=%d )", __FUNCTION__, Timestamp, Delta );
+
+        if ( ( Status = TIM_Timestamp_IsValid( Timestamp ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        TIM_YearDelta_t YearDelta = UTIL_MonthToYear( Delta );
+        if ( Timestamp->Month != TIM_Month_Unknown )
+        {
+            Timestamp->Month += UTIL_Modulus( Delta, 12 );
+            if ( Timestamp->Month > TIM_Month_December )
+            {
+                Timestamp->Month -= TIM_Month_December;
+                YearDelta++;
+            }
+        }
+
+        Status = TIM_Timestamp_AddYear( Timestamp, YearDelta );
+    }
+    while ( 0 );
+
+    return Status;
+}
+
+TIM_Status_t TIM_Timestamp_AddDay( TIM_Timestamp_t * Timestamp, TIM_DayDelta_t Delta )
+{
+    // TODO Support -ve Delta
+    TIM_Status_t Status = TIM_Status_Success;
+
+    do
+    {
+        TIM_Trace( "%s( Timestamp=%p, Delta=%d )", __FUNCTION__, Timestamp, Delta );
+
+        if ( ( Status = TIM_Timestamp_IsValid( Timestamp ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        if ( Timestamp->Weekday != TIM_Weekday_Unknown )
+        {
+            Timestamp->Weekday += UTIL_Modulus( Delta, 7 );
+            if ( Timestamp->Weekday > TIM_Weekday_Friday )
+            {
+                Timestamp->Weekday -= 1 + TIM_Weekday_Friday;
+            }
+        }
+
+        if ( Timestamp->Day != TIM_Day_Unknown )
+        {
+            do
+            {
+                TIM_Day_t DayMonthEnd = TIM_Day_Unknown;
+                if ( ( Status = TIM_Timestamp_GetMonthLastDay( Timestamp, &DayMonthEnd ) ) != TIM_Status_Success )
+                {
+                    break;
+                }
+                if ( DayMonthEnd == TIM_Day_Unknown )
+                {
+                    // Couldn't determine the end day of the month
+                    // (ex: year or/and month is/are unknown )
+                    Timestamp->Day += Delta;
+                    if ( Timestamp->Day > TIM_Day_31 )
+                    {
+                        // MAX exceeded
+                        Timestamp->Day = TIM_Day_Unknown;
+                    }
+                }
+                else
+                {
+                    TIM_DayDelta_t DayMonthEndDelta = 0;
+                    if ( ( Status = TIM_Timestamp_GetMonthLastDayDelta( Timestamp, &DayMonthEndDelta ) ) != TIM_Status_Success )
+                    {
+                        // Shouldn't fail !!
+                        break;
+                    }
+                    if ( Delta > DayMonthEndDelta )
+                    {
+                        // Delta exceeds current month
+                        Delta -= DayMonthEndDelta + 1;
+                        Timestamp->Day = TIM_Day_1;
+                        TIM_Timestamp_AddMonth( Timestamp, 1 );
+                    }
+                    else
+                    {
+                        // Delta exists in the current month
+                        Timestamp->Day += Delta;
+                        Delta = 0;
+                    }
+                }
+                Status = TIM_Status_Success;
+            }
+            while ( Delta > 0 );
+            // pass through last status reached
+            break;
+        }
+    }
+    while ( 0 );
+
+    return Status;
+}
+
+TIM_Status_t TIM_Timestamp_AddHour( TIM_Timestamp_t * Timestamp, TIM_HourDelta_t Delta )
+{
+    TIM_Status_t Status = TIM_Status_Success;
+
+    do
+    {
+        TIM_Trace( "%s( Timestamp=%p, Delta=%d )", __FUNCTION__, Timestamp, Delta );
+
+        if ( ( Status = TIM_Timestamp_IsValid( Timestamp ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        TIM_DayDelta_t DayDelta = UTIL_HourToDay( Delta );
+        if ( Timestamp->Hour != TIM_Hour_Unknown )
+        {
+            Timestamp->Hour += Delta - UTIL_DayToHour( DayDelta );
+            if ( Timestamp->Hour > TIM_Hour_23 )
+            {
+                Timestamp->Hour -= 1 + TIM_Hour_23;
+                DayDelta++;
+            }
+
+            if ( Timestamp->Hour < TIM_Hour_00 )
+            {
+                Timestamp->Hour += 1 + TIM_Hour_23;
+                DayDelta--;
+            }
+        }
+
+        Status = TIM_Timestamp_AddDay( Timestamp, DayDelta );
+    }
+    while ( 0 );
+
+    return Status;
+}
+
+TIM_Status_t TIM_Timestamp_AddMinute( TIM_Timestamp_t * Timestamp, TIM_MinuteDelta_t Delta )
+{
+    TIM_Status_t Status = TIM_Status_Success;
+
+    do
+    {
+        TIM_Trace( "%s( Timestamp=%p, Delta=%d )", __FUNCTION__, Timestamp, Delta );
+
+        if ( ( Status = TIM_Timestamp_IsValid( Timestamp ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        TIM_HourDelta_t HourDelta = UTIL_MinuteToHour( Delta );
+        if ( Timestamp->Minute != TIM_Minute_Unknown )
+        {
+            Timestamp->Minute += Delta - UTIL_HourToMinute( HourDelta );
+            if ( Timestamp->Minute > TIM_Minute_59 )
+            {
+                Timestamp->Minute -= 1 + TIM_Minute_59;
+                HourDelta++;
+            }
+
+            if ( Timestamp->Minute < TIM_Minute_00 )
+            {
+                Timestamp->Minute += 1 + TIM_Minute_59;
+                HourDelta--;
+            }
+        }
+
+        Status = TIM_Timestamp_AddHour( Timestamp, HourDelta );
+    }
+    while ( 0 );
+
+    return Status;
+}
+
+TIM_Status_t TIM_Timestamp_AddSecond( TIM_Timestamp_t * Timestamp, TIM_SecondDelta_t Delta )
+{
+    TIM_Status_t Status = TIM_Status_Success;
+
+    do
+    {
+        TIM_Trace( "%s( Timestamp=%p, Delta=%d )", __FUNCTION__, Timestamp, Delta );
+
+        if ( ( Status = TIM_Timestamp_IsValid( Timestamp ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        TIM_MinuteDelta_t MinuteDelta = UTIL_SecondToMinute( Delta );
+        if ( Timestamp->Second != TIM_Second_Unknown )
+        {
+            Timestamp->Second += Delta - UTIL_MinuteToSecond( MinuteDelta );
+            if ( Timestamp->Second > TIM_Second_59 )
+            {
+                Timestamp->Second -= 1 + TIM_Second_59;
+                MinuteDelta++;
+            }
+
+            if ( Timestamp->Second < TIM_Second_00 )
+            {
+                Timestamp->Second += 1 + TIM_Second_59;
+                MinuteDelta--;
+            }
+        }
+
+        Status = TIM_Timestamp_AddMinute( Timestamp, MinuteDelta );
+    }
+    while ( 0 );
+
+    return Status;
+}
+
+TIM_Status_t TIM_Timestamp_AddMillisecond( TIM_Timestamp_t * Timestamp, TIM_MillisecondDelta_t Delta )
+{
+    TIM_Status_t Status = TIM_Status_Success;
+
+    do
+    {
+        TIM_Trace( "%s( Timestamp=%p, Delta=%d )", __FUNCTION__, Timestamp, Delta );
+
+        if ( ( Status = TIM_Timestamp_IsValid( Timestamp ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        TIM_SecondDelta_t SecondDelta = UTIL_MillisecondToSecond( Delta );
+        if ( Timestamp->Millisecond != TIM_Millisecond_Unknown )
+        {
+            Timestamp->Millisecond += Delta - UTIL_SecondToMillisecond( SecondDelta );
+            if ( Timestamp->Millisecond > TIM_Millisecond_999 )
+            {
+                Timestamp->Millisecond -= 1 + TIM_Millisecond_999;
+                SecondDelta++;
+            }
+
+            if ( Timestamp->Millisecond < TIM_Millisecond_000 )
+            {
+                Timestamp->Millisecond += 1 + TIM_Millisecond_999;
+                SecondDelta--;
+            }
+        }
+
+        Status = TIM_Timestamp_AddSecond( Timestamp, SecondDelta );
+    }
+    while ( 0 );
+
+    return Status;
+}
+
+TIM_Status_t TIM_Timestamp_AddMicrosecond( TIM_Timestamp_t * Timestamp, TIM_MicrosecondDelta_t Delta )
+{
+    TIM_Status_t Status = TIM_Status_Success;
+
+    do
+    {
+        TIM_Trace( "%s( Timestamp=%p, Delta=%d )", __FUNCTION__, Timestamp, Delta );
+
+        if ( ( Status = TIM_Timestamp_IsValid( Timestamp ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        TIM_MillisecondDelta_t MillisecondDelta = UTIL_MicrosecondToMillisecond( Delta );
+        if ( Timestamp->Microsecond != TIM_Microsecond_Unknown )
+        {
+            Timestamp->Microsecond += Delta - UTIL_MillisecondToMicrosecond( MillisecondDelta );
+            if ( Timestamp->Microsecond > TIM_Microsecond_999 )
+            {
+                Timestamp->Microsecond -= 1 + TIM_Microsecond_999;
+                MillisecondDelta++;
+            }
+
+            if ( Timestamp->Microsecond < TIM_Microsecond_000 )
+            {
+                Timestamp->Microsecond += 1 + TIM_Microsecond_999;
+                MillisecondDelta--;
+            }
+        }
+
+        Status = TIM_Timestamp_AddMillisecond( Timestamp, MillisecondDelta );
+    }
+    while ( 0 );
+
+    return Status;
+}
+
+TIM_Status_t TIM_Timestamp_AddDelta( TIM_Timestamp_t * Timestamp, TIM_Delta_t Delta )
+{
+    TIM_Status_t Status = TIM_Status_Success;
+
+    do
+    {
+        TIM_Trace( "%s( Timestamp=%p, Delta=%d )", __FUNCTION__, Timestamp, Delta );
+
+        if ( ( Status = TIM_Timestamp_IsValid( Timestamp ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        if ( ( Status = TIM_Timestamp_AddMicrosecond( Timestamp, Delta.Microsecond ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        if ( ( Status = TIM_Timestamp_AddMillisecond( Timestamp, Delta.Millisecond ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        if ( ( Status = TIM_Timestamp_AddSecond( Timestamp, Delta.Second ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        if ( ( Status = TIM_Timestamp_AddMinute( Timestamp, Delta.Minute ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        if ( ( Status = TIM_Timestamp_AddHour( Timestamp, Delta.Hour ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        if ( ( Status = TIM_Timestamp_AddDay( Timestamp, Delta.Day ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        if ( ( Status = TIM_Timestamp_AddMonth( Timestamp, Delta.Month ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+
+        if ( ( Status = TIM_Timestamp_AddYear( Timestamp, Delta.Year ) ) != TIM_Status_Success )
+        {
+            break;
+        }
+    }
+    while ( 0 );
+
+    return Status;
+}
+
+TIM_Status_t TIM_Timestamp_GetDelta( TIM_Timestamp_t * Timestamp_1, TIM_Timestamp_t * Timestamp_2, TIM_Delta_t * Delta )
+{
+    TIM_Status_t Status = TIM_Status_Success;
+
+    do
+    {
+        TIM_Trace( "%s( Timestamp_1=%p, Timestamp_2=%p, Delta=%p )", __FUNCTION__, Timestamp_1, Timestamp_2, Delta );
+
+        if ( Timestamp_1 == NULL
+             || Timestamp_2 == NULL
+             || Delta == NULL
+             || TIM_Timestamp_IsValid( Timestamp_1 ) != TIM_Status_Success
+             || TIM_Timestamp_IsValid( Timestamp_2 ) != TIM_Status_Success )
+        {
+            Status = TIM_Status_ArgumentInvalid;
+            break;
+        }
+
+        if ( Timestamp_1->Year == TIM_Year_Unknown
+             || Timestamp_1->Month == TIM_Month_Unknown
+             || Timestamp_1->Day == TIM_Day_Unknown
+             || Timestamp_1->Hour == TIM_Hour_Unknown
+             || Timestamp_1->Minute == TIM_Minute_Unknown
+             || Timestamp_1->Second == TIM_Second_Unknown
+             || Timestamp_1->Millisecond == TIM_Millisecond_Unknown
+             || Timestamp_1->Microsecond == TIM_Microsecond_Unknown
+             || Timestamp_2->Year == TIM_Year_Unknown
+             || Timestamp_2->Month == TIM_Month_Unknown
+             || Timestamp_2->Day == TIM_Day_Unknown
+             || Timestamp_2->Hour == TIM_Hour_Unknown
+             || Timestamp_2->Minute == TIM_Minute_Unknown
+             || Timestamp_2->Second == TIM_Second_Unknown
+             || Timestamp_2->Millisecond == TIM_Millisecond_Unknown
+             || Timestamp_2->Microsecond == TIM_Microsecond_Unknown )
+        {
+            Status = TIM_Status_Error;
+            break;
+        }
+
+        // FIXME Delta days might be incorrect
+        // FIXME Delta might contain +ve and -ve deltas at the same time
+        Delta->Year = Timestamp_1->Year - Timestamp_2->Year;
+        Delta->Month = Timestamp_1->Month - Timestamp_2->Month;
+        Delta->Day = Timestamp_1->Day - Timestamp_2->Day;
+        Delta->Hour = Timestamp_1->Hour - Timestamp_2->Hour;
+        Delta->Minute = Timestamp_1->Minute - Timestamp_2->Minute;
+        Delta->Second = Timestamp_1->Second - Timestamp_2->Second;
+        Delta->Millisecond = Timestamp_1->Millisecond - Timestamp_2->Millisecond;
+        Delta->Microsecond = Timestamp_1->Microsecond - Timestamp_2->Microsecond;
+    }
+    while ( 0 );
+
+    return Status;
+}
+
 // #############################################################################
 // #### Public Variable(s) #####################################################
 // #############################################################################

@@ -104,6 +104,7 @@ extern "C"
         };
 
         TIM_Timestamp_t Timestamp;
+        LIST_t Timestamps;
     } TIM_Instance_t;
 
     // #############################################################################
@@ -134,6 +135,8 @@ extern "C"
     TIM_Status_t TIM_Timestamp_GetMonthLastDay( TIM_Timestamp_t * Timestamp, TIM_Day_t * Day );
     TIM_Status_t TIM_Timestamp_GetMonthLastDayDelta( TIM_Timestamp_t * Timestamp, TIM_DayDelta_t * DayDelta );
 
+    TIM_Status_t TIM_Timestamp_IsAfter( TIM_Timestamp_t * Timestamp_1, TIM_Timestamp_t * Timestamp_2 );
+
     // The following APIs MUST be provided by the port
     TIM_Status_t TIM_Port_Initialize( TIM_t TIMx );
     TIM_Status_t TIM_Port_Cycle( TIM_t TIMx );
@@ -142,6 +145,8 @@ extern "C"
     TIM_Status_t TIM_Port_SetTimestamp( TIM_t TIMx, TIM_Timestamp_t Timestamp );
     TIM_Status_t TIM_Port_GetTimestamp( TIM_t TIMx, TIM_Timestamp_t * Timestamp );
     TIM_Status_t TIM_Port_IsExpiredTimestamp( TIM_t TIMx, TIM_Timestamp_t * Timestamp );
+
+    TIM_Status_t TIM_Port_SetOnExpire( TIM_t TIMx, TIM_Timestamp_t * Timestamp, TIM_OnExpire_t OnExpire );
 
     // #############################################################################
     // #### Public Variable(s) #####################################################
